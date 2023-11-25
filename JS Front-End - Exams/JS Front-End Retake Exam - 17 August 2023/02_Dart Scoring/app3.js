@@ -19,62 +19,46 @@ function solve() {
         round: null,
     };
 
-    function createDomElement(type, parrent, textContent, classList, id, attributes, useInnerHtml) {
-        const element = document.createElement(type);
-
-        if (useInnerHtml && textContent) {
-            element.innerHTML = textContent;
-        } else {
-            if (textContent && type !== "input") {
-                element.textContent = textContent;
-            }
-        }
-        if (textContent && type === "input") {
-            element.value = textContent;
-        }
-
-        if (classList && classList.length > 0) {
-            element.classList.add(...classList);
-        }
-
-        if (id) {
-            element.id = id;
-        }
-
-        if (attributes) {
-            for (const key in attributes) {
-                element[key] = attributes[key];
-            }
-        }
-
-        if (parrent) {
-            parrent.appendChild(element);
-        }
-        return element;
-    }
-
     buttons.addBtn.addEventListener("click", loadAllData);
 
     function loadAllData() {
         if (Object.values(inputFields).some((x) => x.value === "")) {
             return;
         }
-        const {player, score, round} = inputFields;
+        const li = document.createElement("li");
+        li.classList.add("dart-item");
 
-        const li = createDomElement("li", document.querySelector("#sure-list"), null, ["dart-item"]);
-        const article = createDomElement("article", li);
-        createDomElement("p", article, player.value);
-        createDomElement("p", article, `Score: ${score.value}`);
-        createDomElement("p", article, `Round: ${round.value}`);
-        const editBtn = createDomElement("button", li, "edit", ["btn", "edit"]);
-        const okBtn = createDomElement("button", li, "edit", ["btn", "ok"]);
-
-        editBtn.addEventListener("click", editInformation);
-        okBtn.addEventListener("click", okFunction);
+        const article = document.createElement("article");
+        const Pplayer = document.createElement("p");
+        Pplayer.textContent = inputFields.player.value;
+        const Pscore = document.createElement("p");
+        Pscore.textContent = `Score: ${inputFields.score.value}`;
+        const Pround = document.createElement("p");
+        Pround.textContent = `Round: ${inputFields.round.value}`;
 
         for (const key in inputFields) {
             currInformation[key] = inputFields[key].value;
         }
+
+        const editBtn = document.createElement("button");
+        editBtn.classList.add("btn", "edit");
+        editBtn.textContent = "edit";
+        editBtn.addEventListener("click", editInformation);
+
+        const okBtn = document.createElement("button");
+        okBtn.classList.add("btn", "ok");
+        okBtn.textContent = "ok";
+        okBtn.addEventListener("click", okFunction);
+
+        article.appendChild(Pplayer);
+        article.appendChild(Pscore);
+        article.appendChild(Pround);
+
+        li.appendChild(article);
+        li.appendChild(editBtn);
+        li.appendChild(okBtn);
+
+        document.querySelector("#sure-list").appendChild(li);
 
         buttons.addBtn.disabled = true;
         form.reset();
