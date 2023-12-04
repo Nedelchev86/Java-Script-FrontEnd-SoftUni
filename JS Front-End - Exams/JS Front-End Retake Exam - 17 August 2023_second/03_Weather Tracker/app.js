@@ -6,8 +6,11 @@ const form = document.querySelector("form");
 
 const addBtn = document.querySelector("#add-weather");
 addBtn.addEventListener("click", addWeather);
+editBtn = document.querySelector("#edit-weather");
+editBtn.addEventListener("click", editWeather);
 
-let allHistory = {};
+let allHistory;
+let lastID;
 
 const allInputFileds = {
     location: document.querySelector("#location"),
@@ -53,24 +56,21 @@ async function loadHistory() {
     list.innerHTML = "";
     const weather = Object.values(await (await fetch(BASEURL)).json());
     allHistory = weather;
-    console.log(allHistory);
 
     weather.forEach((element) => {
         const container = createDomElement("div", list, null, ["container"], element._id);
         createDomElement("h2", container, element.location);
         createDomElement("h3", container, element.date);
-        createDomElement("h3", container, element.temperature, ["celsius"]);
+        createDomElement("h3", container, element.temperature, null, "celsius");
         const buttonContainer = createDomElement("div", container, null, ["buttons-container"]);
         const changeBtn = createDomElement("button", buttonContainer, "Change", ["change-btn"]);
+        changeBtn.addEventListener("click", changeWeather);
         const deleteBtn = createDomElement("button", buttonContainer, "Delete", ["delete-btn"]);
+        deleteBtn.addEventListener("click", deleteLocation);
     });
 }
 
 async function addWeather() {
-    if (Object.values(allHistory).some((x) => x.value === "")) {
-        return;
-    }
-
     const {location, temperature, date} = allInputFileds;
 
     await fetch(BASEURL, {
@@ -78,5 +78,39 @@ async function addWeather() {
         body: JSON.stringify({location: location.value, temperature: temperature.value, date: date.value}),
     });
     form.reset();
+    loadHistory();
+}
+
+function changeWeather() {
+    lastID = this.parentElement.parentElement.id;
+    const weatherElement = allHistory.find((x) => x._id === lastID);
+
+    Object.keys(allInputFileds).forEach((key) => {
+        allInputFileds[key].value = weatherElement[key];
+    });
+
+    addBtn.disabled = true;
+    editBtn.disabled = false;
+}
+
+async function editWeather() {
+    const {location, temperature, date} = allInputFileds;
+
+    await fetch(`${BASEURL}${lastID}`, {
+        method: "PUT",
+        body: JSON.stringify({location: location.value, date: date.value, temperature: temperature.value, _id: lastID}),
+    });
+    form.reset();
+    loadHistory();
+
+    addBtn.disabled = false;
+    editBtn.disabled = true;
+}
+
+async function deleteLocation() {
+    lastID = this.parentElement.parentElement.id;
+    await fetch(`${BASEURL}${lastID}`, {
+        method: "DELETE",
+    });
     loadHistory();
 }
